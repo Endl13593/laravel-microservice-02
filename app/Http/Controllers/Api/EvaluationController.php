@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEvaluation;
 use App\Http\Resources\EvaluationResource;
 use App\Models\Evaluation;
+use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
@@ -13,10 +14,12 @@ use Illuminate\Support\Collection;
 class EvaluationController extends Controller
 {
     protected $repository;
+    protected $companyService;
 
-    public function __construct(Evaluation $model)
+    public function __construct(Evaluation $model, CompanyService $companyService)
     {
         $this->repository = $model;
+        $this->companyService = $companyService;
     }
 
     public function index(string $company): AnonymousResourceCollection
@@ -26,8 +29,17 @@ class EvaluationController extends Controller
         return EvaluationResource::collection($evaluations);
     }
 
-    public function store(StoreEvaluation $request, string $company): EvaluationResource
+    public function store(StoreEvaluation $request, string $company)
     {
+        $response = $this->companyService->getCompany($company);
+        $status = $response->status();
+
+        if ($status != 200) {
+            return response()->json([
+                'message' => 'Invalid Company'
+            ], $status);
+        }
+
         $evaluation = $this->repository->create($request->validated());
 
         return new EvaluationResource($evaluation);
