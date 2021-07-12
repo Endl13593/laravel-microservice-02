@@ -4,6 +4,8 @@
 namespace App\Services;
 
 
+use Endl13593\CommunicationMicroservices\Services\Traits\ConsumeExternalService;
+
 class CompanyService
 {
     use ConsumeExternalService;
